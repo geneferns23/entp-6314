@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Split — Tip Splitter</title>
+<style>
+  :root{
+    --paper:#F4F1EA;
+    --ink:#1C1A17;
+    --stamp:#C2452D;
+    --muted:#8A8175;
+    --rule:#DDD6C8;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: Menlo, Consolas, ui-monospace, "Courier New", monospace;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    background:var(--paper);
+    color:var(--ink);
+  }
+  body{
+    margin:0;
+    padding:40px 20px 72px;
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .receipt{
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+  }
+
+  /* ---------- type ---------- */
+  h1{
+    font-family:var(--serif);
+    font-weight:normal;
+    font-size:27px;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    text-align:center;
+    margin:0 0 10px;
+  }
+  .estd{
+    text-align:center;
+    font-family:var(--serif);
+    font-size:10px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 4px;
+  }
+  .label{
+    font-family:var(--serif);
+    font-size:10px;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .note{
+    font-family:var(--serif);
+    font-size:11px;
+    line-height:1.5;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+
+  /* ---------- tear lines ---------- */
+  .tear{
+    border:0;
+    border-top:1px dashed var(--rule);
+    margin:26px 0;
+  }
+  .tear.tight{ margin:16px 0; }
+
+  /* ---------- rows ---------- */
+  .row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    padding:7px 0;
+  }
+  .amt{
+    font-family:var(--mono);
+    font-size:15px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+
+  /* ---------- inputs ---------- */
+  .field{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    padding:9px 0;
+  }
+  input[type=text]{
+    font-family:var(--mono);
+    font-size:17px;
+    color:var(--ink);
+    background:transparent;
+    border:0;
+    border-bottom:1px solid var(--rule);
+    border-radius:0;
+    padding:2px 0 4px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-bottom-color:var(--ink);
+  }
+  input::placeholder{ color:var(--rule); }
+
+  .money{ display:flex; align-items:baseline; gap:4px; }
+  .money .sign{ font-family:var(--mono); font-size:17px; color:var(--muted); }
+  #bill{ width:130px; }
+
+  .counter{ display:flex; align-items:center; gap:10px; }
+  #people{ width:56px; text-align:center; }
+  .step{
+    font-family:var(--mono);
+    font-size:15px;
+    line-height:1;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--rule);
+    border-radius:0;
+    width:26px;
+    height:26px;
+    padding:0;
+    cursor:pointer;
+  }
+  .step:hover{ border-color:var(--ink); }
+
+  /* ---------- tip buttons ---------- */
+  .tips{
+    display:flex;
+    gap:8px;
+    margin-top:12px;
+  }
+  .tip{
+    flex:1;
+    font-family:var(--mono);
+    font-size:14px;
+    letter-spacing:.04em;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--rule);
+    border-radius:0;
+    padding:10px 0;
+    cursor:pointer;
+  }
+  .tip:hover{ border-color:var(--muted); }
+  .tip.on{
+    background:var(--stamp);
+    border-color:var(--stamp);
+    color:var(--paper);
+  }
+  .custom-wrap{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    margin-top:14px;
+  }
+  #custom{ width:80px; }
+
+  /* ---------- checkbox toggles ---------- */
+  .toggle{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:9px 0;
+    cursor:pointer;
+    user-select:none;
+  }
+  .toggle input{
+    position:absolute;
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  .box{
+    width:15px;
+    height:15px;
+    flex:0 0 15px;
+    border:1px solid var(--ink);
+    font-family:var(--mono);
+    font-size:14px;
+    line-height:13px;
+    text-align:center;
+    color:var(--stamp);
+  }
+  .box::after{ content:""; }
+  .toggle input:checked + .box::after{ content:"\00d7"; }
+  .toggle input:focus-visible + .box{ outline:1px dotted var(--muted); outline-offset:2px; }
+  .toggle .label{ color:var(--ink); }
+
+  /* ---------- headline number ---------- */
+  .headline{ text-align:center; padding:6px 0 2px; }
+  .headline .big{
+    font-family:var(--mono);
+    font-size:56px;
+    line-height:1.05;
+    color:var(--stamp);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+  }
+  .headline .label{ display:block; margin-top:10px; }
+
+  .total-row .amt{ color:var(--stamp); font-size:17px; }
+  .total-row .label{ color:var(--ink); }
+
+  /* ---------- person rows ---------- */
+  .people-list{ margin-top:4px; }
+  .prow{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    padding:6px 0;
+  }
+  .prow .pname{
+    flex:1 1 auto;
+    min-width:0;
+    font-family:var(--serif);
+    font-size:14px;
+    text-align:left;
+    letter-spacing:.02em;
+  }
+  .prow .pextra{ width:74px; font-size:14px; }
+  .prow .plus{ font-family:var(--mono); font-size:13px; color:var(--muted); }
+  .prow .pamt{
+    width:82px;
+    flex:0 0 82px;
+    font-family:var(--mono);
+    font-size:14px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .prow-head{ padding-bottom:2px; }
+  .prow-head .h1c{ flex:1 1 auto; }
+  .prow-head .h2c{ width:74px; flex:0 0 74px; text-align:right; }
+  .prow-head .h3c{ width:82px; flex:0 0 82px; text-align:right; }
+
+  .warn{
+    font-family:var(--serif);
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--stamp);
+    padding:6px 0 0;
+  }
+
+  /* ---------- copy ---------- */
+  .copy{
+    display:block;
+    width:100%;
+    font-family:var(--serif);
+    font-size:11px;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--ink);
+    border-radius:0;
+    padding:14px 0;
+    cursor:pointer;
+  }
+  .copy:hover{ border-color:var(--stamp); color:var(--stamp); }
+  .copied{
+    text-align:center;
+    font-family:var(--serif);
+    font-size:10px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--stamp);
+    height:14px;
+    margin-top:12px;
+    visibility:hidden;
+  }
+  .copied.show{ visibility:visible; }
+
+  .footer{
+    text-align:center;
+    font-family:var(--serif);
+    font-size:10px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:2;
+  }
+  .barcode{
+    font-family:var(--mono);
+    font-size:20px;
+    letter-spacing:-1px;
+    color:var(--ink);
+    text-align:center;
+    margin-top:18px;
+  }
+  .hidden{ display:none; }
+</style>
+</head>
+<body>
+
+<div class="receipt">
+
+  <p class="estd">Table&nbsp;&nbsp;·&nbsp;&nbsp;Guest Check</p>
+  <h1>The Split</h1>
+  <p class="estd">Serving parties large and small</p>
+
+  <hr class="tear">
+
+  <div class="field">
+    <span class="label">Bill Total</span>
+    <span class="money"><span class="sign">$</span><input type="text" id="bill" inputmode="decimal" placeholder="0.00" value="120.00"></span>
+  </div>
+
+  <div class="field">
+    <span class="label">People</span>
+    <span class="counter">
+      <button class="step" id="minus" type="button" aria-label="one fewer person">&minus;</button>
+      <input type="text" id="people" inputmode="numeric" value="4">
+      <button class="step" id="plus" type="button" aria-label="one more person">+</button>
+    </span>
+  </div>
+
+  <hr class="tear">
+
+  <span class="label">Tip</span>
+  <div class="tips" id="tips">
+    <button class="tip" type="button" data-pct="15">15%</button>
+    <button class="tip" type="button" data-pct="18">18%</button>
+    <button class="tip on" type="button" data-pct="20">20%</button>
+    <button class="tip" type="button" data-pct="25">25%</button>
+  </div>
+  <div class="custom-wrap">
+    <span class="label">Custom</span>
+    <span class="money"><input type="text" id="custom" inputmode="decimal" placeholder="—"><span class="sign">%</span></span>
+  </div>
+
+  <hr class="tear">
+
+  <div class="row"><span class="label">Subtotal</span><span class="amt" id="outBill">$0.00</span></div>
+  <div class="row"><span class="label" id="tipLabel">Tip</span><span class="amt" id="outTip">$0.00</span></div>
+  <div class="row total-row"><span class="label">Grand Total</span><span class="amt" id="outTotal">$0.00</span></div>
+
+  <hr class="tear">
+
+  <div class="headline">
+    <div class="big" id="outEach">$0.00</div>
+    <span class="label" id="eachLabel">Per Person</span>
+  </div>
+
+  <hr class="tear">
+
+  <label class="toggle" for="uneven">
+    <input type="checkbox" id="uneven">
+    <span class="box"></span>
+    <span class="label">Uneven Split</span>
+  </label>
+  <label class="toggle" for="roundup">
+    <input type="checkbox" id="roundup">
+    <span class="box"></span>
+    <span class="label">Round Up Each Share</span>
+  </label>
+
+  <div id="unevenNote" class="note hidden" style="padding-top:8px">
+    Enter what a person owes on their own for the pricey plate. That amount comes
+    out of the shared pool first, the rest divides evenly, then it goes back onto
+    their line. Tip rides along in the same proportion.
+  </div>
+
+  <div id="listBlock" class="hidden">
+    <hr class="tear tight">
+    <div class="prow prow-head">
+      <span class="label h1c">Guest</span>
+      <span class="label h2c" id="extraHead">Extra</span>
+      <span class="label h3c">Owes</span>
+    </div>
+    <div class="people-list" id="peopleList"></div>
+    <div class="warn hidden" id="warn">Extras exceed the bill total</div>
+  </div>
+
+  <div id="surplusBlock" class="hidden">
+    <hr class="tear tight">
+    <div class="row"><span class="label">Rounding Surplus — Extra Tip</span><span class="amt" id="outSurplus">$0.00</span></div>
+    <div class="row"><span class="label">Tip After Rounding</span><span class="amt" id="outTipAfter">$0.00</span></div>
+  </div>
+
+  <hr class="tear">
+
+  <button class="copy" id="copyBtn" type="button">Copy for the Group Chat</button>
+  <div class="copied" id="copied">Copied to clipboard</div>
+
+  <div class="barcode">|| ||| | |||| || | ||| |||| | || |||</div>
+  <p class="footer">Thank you — please come again</p>
+
+</div>
+
+<textarea id="fallback" style="position:fixed;left:-9999px;top:0;opacity:0" aria-hidden="true"></textarea>
+
+<script>
+(function () {
+  "use strict";
+
+  var MAX_PEOPLE = 40;
+
+  var el = {
+    bill:      document.getElementById("bill"),
+    people:    document.getElementById("people"),
+    minus:     document.getElementById("minus"),
+    plus:      document.getElementById("plus"),
+    tips:      document.getElementById("tips"),
+    custom:    document.getElementById("custom"),
+    outBill:   document.getElementById("outBill"),
+    outTip:    document.getElementById("outTip"),
+    tipLabel:  document.getElementById("tipLabel"),
+    outTotal:  document.getElementById("outTotal"),
+    outEach:   document.getElementById("outEach"),
+    eachLabel: document.getElementById("eachLabel"),
+    uneven:    document.getElementById("uneven"),
+    roundup:   document.getElementById("roundup"),
+    unevenNote:document.getElementById("unevenNote"),
+    listBlock: document.getElementById("listBlock"),
+    peopleList:document.getElementById("peopleList"),
+    extraHead: document.getElementById("extraHead"),
+    warn:      document.getElementById("warn"),
+    surplus:   document.getElementById("surplusBlock"),
+    outSurplus:document.getElementById("outSurplus"),
+    outTipAfter:document.getElementById("outTipAfter"),
+    copyBtn:   document.getElementById("copyBtn"),
+    copied:    document.getElementById("copied"),
+    fallback:  document.getElementById("fallback")
+  };
+
+  // Persisted per-guest data, kept across changes to the party size.
+  var guests = [];       // [{ name: "", extra: "" }]
+  var tipPct = 20;       // active tip percentage
+  var lastCalc = null;   // most recent computed result, used by the copy button
+
+  /* ------------------------- helpers ------------------------- */
+
+  function num(v) {
+    var n = parseFloat(String(v).replace(/[^0-9.\-]/g, ""));
+    return isFinite(n) ? n : 0;
+  }
+
+  function money(n) {
+    var neg = n < 0;
+    var s = Math.abs(n).toFixed(2);
+    var parts = s.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return (neg ? "-$" : "$") + parts.join(".");
+  }
+
+  function pctText(p) {
+    return (Math.round(p * 100) / 100) + "%";
+  }
+
+  function peopleCount() {
+    var n = Math.floor(num(el.people.value));
+    if (!(n > 0)) n = 1;
+    if (n > MAX_PEOPLE) n = MAX_PEOPLE;
+    return n;
+  }
+
+  function ensureGuests(n) {
+    while (guests.length < n) guests.push({ name: "", extra: "" });
+    if (guests.length > n) guests.length = n;
+  }
+
+  function guestName(i) {
+    var g = guests[i];
+    var name = g && g.name ? g.name.trim() : "";
+    return name || ("Person " + (i + 1));
+  }
+
+  /* ------------------------- the math ------------------------- */
+
+  function calculate() {
+    var bill = num(el.bill.value);
+    var n = peopleCount();
+    var rate = tipPct / 100;
+    var useUneven = el.uneven.checked;
+    var useRound = el.roundup.checked;
+
+    ensureGuests(n);
+
+    var extras = [];
+    var extraSum = 0;
+    for (var i = 0; i < n; i++) {
+      var e = useUneven ? num(guests[i].extra) : 0;
+      if (e < 0) e = 0;
+      extras.push(e);
+      extraSum += e;
+    }
+
+    // Shared pool: what is left of the bill once personal extras come out.
+    var pool = bill - extraSum;
+    var base = pool / n;
+
+    // Each guest's slice of the bill, then tip applied in the same proportion.
+    var exact = [];
+    for (var j = 0; j < n; j++) {
+      exact.push((base + extras[j]) * (1 + rate));
+    }
+
+    var tip = bill * rate;
+    var total = bill + tip;
+
+    var shown = exact.slice();
+    var surplus = 0;
+    if (useRound) {
+      for (var k = 0; k < n; k++) {
+        var up = Math.ceil(exact[k] - 1e-9);
+        surplus += up - exact[k];
+        shown[k] = up;
+      }
+    }
+
+    return {
+      bill: bill,
+      n: n,
+      rate: rate,
+      tip: tip,
+      total: total,
+      extras: extras,
+      extraSum: extraSum,
+      base: base * (1 + rate),   // even share, tip included, before extras
+      exact: exact,
+      shown: shown,
+      surplus: surplus,
+      useUneven: useUneven,
+      useRound: useRound,
+      overExtra: extraSum > bill + 1e-9
+    };
+  }
+
+  /* ------------------------- rendering ------------------------- */
+
+  function buildList(c) {
+    // Rebuild only when the row count changed, so typing never loses focus.
+    var rows = el.peopleList.children;
+    if (rows.length !== c.n) {
+      var html = "";
+      for (var i = 0; i < c.n; i++) {
+        html +=
+          '<div class="prow">' +
+            '<input type="text" class="pname" data-i="' + i + '" placeholder="Person ' + (i + 1) + '">' +
+            '<span class="plus">+$</span>' +
+            '<input type="text" class="pextra" data-i="' + i + '" inputmode="decimal" placeholder="0.00">' +
+            '<span class="pamt"></span>' +
+          '</div>';
+      }
+      el.peopleList.innerHTML = html;
+      // Restore any values already held in state.
+      var names = el.peopleList.querySelectorAll(".pname");
+      var exs = el.peopleList.querySelectorAll(".pextra");
+      for (var j = 0; j < c.n; j++) {
+        names[j].value = guests[j].name;
+        exs[j].value = guests[j].extra;
+      }
+    }
+
+    var amts = el.peopleList.querySelectorAll(".pamt");
+    var extraInputs = el.peopleList.querySelectorAll(".pextra");
+    for (var k = 0; k < c.n; k++) {
+      amts[k].textContent = money(c.shown[k]);
+      extraInputs[k].style.visibility = c.useUneven ? "visible" : "hidden";
+      extraInputs[k].previousElementSibling.style.visibility = c.useUneven ? "visible" : "hidden";
+    }
+    el.extraHead.style.visibility = c.useUneven ? "visible" : "hidden";
+  }
+
+  function render() {
+    var c = calculate();
+    lastCalc = c;
+
+    el.outBill.textContent = money(c.bill);
+    el.tipLabel.textContent = "Tip " + pctText(tipPct);
+    el.outTip.textContent = money(c.tip);
+    el.outTotal.textContent = money(c.total);
+
+    if (c.useUneven) {
+      el.outEach.textContent = money(c.useRound ? Math.ceil(c.base - 1e-9) : c.base);
+      el.eachLabel.textContent = "Even Share — Before Extras";
+    } else {
+      el.outEach.textContent = money(c.shown[0]);
+      el.eachLabel.textContent = c.useRound ? "Per Person — Rounded" : "Per Person";
+    }
+
+    el.unevenNote.classList.toggle("hidden", !c.useUneven);
+
+    var showList = c.useUneven || c.useRound;
+    el.listBlock.classList.toggle("hidden", !showList);
+    if (showList) buildList(c);
+    el.warn.classList.toggle("hidden", !c.overExtra);
+
+    el.surplus.classList.toggle("hidden", !c.useRound);
+    if (c.useRound) {
+      el.outSurplus.textContent = money(c.surplus);
+      el.outTipAfter.textContent = money(c.tip + c.surplus);
+    }
+  }
+
+  /* ------------------------- copy text ------------------------- */
+
+  function pad(left, right, width) {
+    var gap = width - left.length - right.length;
+    if (gap < 1) gap = 1;
+    return left + new Array(gap + 1).join(" ") + right;
+  }
+
+  function summaryText() {
+    var c = lastCalc || calculate();
+    var W = 30;
+    var rule = new Array(W + 1).join("-");
+    var lines = [];
+
+    lines.push("THE SPLIT — " + c.n + (c.n === 1 ? " person" : " people"));
+    lines.push(rule);
+    lines.push(pad("Bill", money(c.bill), W));
+    lines.push(pad("Tip (" + pctText(tipPct) + ")", money(c.tip), W));
+    lines.push(pad("Total", money(c.total), W));
+    lines.push(rule);
+
+    var paid = 0;
+    for (var i = 0; i < c.n; i++) {
+      var tag = guestName(i);
+      if (c.useUneven && c.extras[i] > 0) tag += " (+" + money(c.extras[i]) + ")";
+      lines.push(pad(tag, money(c.shown[i]), W));
+      paid += c.shown[i];
+    }
+
+    lines.push(rule);
+    if (c.useRound) {
+      lines.push(pad("Rounded up, extra tip", money(c.surplus), W));
+      lines.push(pad("Collected", money(paid), W));
+    } else {
+      lines.push(pad("Collected", money(paid), W));
+    }
+
+    return lines.join("\n");
+  }
+
+  function flashCopied() {
+    el.copied.classList.add("show");
+    clearTimeout(flashCopied.t);
+    flashCopied.t = setTimeout(function () {
+      el.copied.classList.remove("show");
+    }, 2600);
+  }
+
+  function legacyCopy(text) {
+    el.fallback.value = text;
+    el.fallback.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    window.getSelection().removeAllRanges();
+    el.fallback.blur();
+    return ok;
+  }
+
+  function doCopy() {
+    var text = summaryText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flashCopied, function () {
+        if (legacyCopy(text)) flashCopied();
+        else el.copied.textContent = "Press Ctrl+C to copy";
+      });
+    } else if (legacyCopy(text)) {
+      flashCopied();
+    } else {
+      el.copied.textContent = "Copy blocked by browser";
+      el.copied.classList.add("show");
+    }
+  }
+
+  /* ------------------------- events ------------------------- */
+
+  el.bill.addEventListener("input", render);
+  el.people.addEventListener("input", render);
+  el.uneven.addEventListener("change", render);
+  el.roundup.addEventListener("change", render);
+
+  el.minus.addEventListener("click", function () {
+    el.people.value = Math.max(1, peopleCount() - 1);
+    render();
+  });
+  el.plus.addEventListener("click", function () {
+    el.people.value = Math.min(MAX_PEOPLE, peopleCount() + 1);
+    render();
+  });
+
+  el.tips.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".tip") : null;
+    if (!b) return;
+    tipPct = num(b.getAttribute("data-pct"));
+    el.custom.value = "";
+    setActiveTip();
+    render();
+  });
+
+  el.custom.addEventListener("input", function () {
+    if (el.custom.value.trim() === "") {
+      tipPct = 20;
+      setActiveTip();
+    } else {
+      tipPct = Math.max(0, num(el.custom.value));
+      setActiveTip(true);
+    }
+    render();
+  });
+
+  function setActiveTip(customActive) {
+    var btns = el.tips.querySelectorAll(".tip");
+    for (var i = 0; i < btns.length; i++) {
+      var on = !customActive && num(btns[i].getAttribute("data-pct")) === tipPct;
+      btns[i].classList.toggle("on", on);
+    }
+  }
+
+  el.peopleList.addEventListener("input", function (e) {
+    var t = e.target;
+    var i = parseInt(t.getAttribute("data-i"), 10);
+    if (isNaN(i) || !guests[i]) return;
+    if (t.classList.contains("pname")) guests[i].name = t.value;
+    else if (t.classList.contains("pextra")) guests[i].extra = t.value;
+    render();
+  });
+
+  document.addEventListener("focusin", function (e) {
+    if (e.target.tagName === "INPUT" && e.target.type === "text" && e.target !== el.fallback) {
+      e.target.select();
+    }
+  });
+
+  el.copyBtn.addEventListener("click", doCopy);
+
+  setActiveTip();
+  render();
+})();
+</script>
+</body>
+</html>

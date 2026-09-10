@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split — Tip Calculator</title>
+<style>
+  /* ---------- design tokens (light) ---------- */
+  :root {
+    --bg-a:        #eef2f5;
+    --bg-b:        #e2e9ef;
+    --card:        #ffffff;
+    --field:       #f2f5f8;
+    --field-focus: #ffffff;
+    --ink:         #16212b;
+    --ink-soft:    #566573;
+    --ink-faint:   #8b98a5;
+    --line:        #dde4ea;
+    --accent:      #0e8f7e;
+    --accent-deep: #0a6f62;
+    --accent-tint: #e2f4f0;
+    --on-accent:   #ffffff;
+    --danger:      #c0392b;
+    --shadow:      0 1px 2px rgba(16,32,44,.05), 0 18px 40px -18px rgba(16,32,44,.28);
+    --radius:      18px;
+  }
+
+  /* ---------- design tokens (dark) ---------- */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-a:        #0a1014;
+      --bg-b:        #101a20;
+      --card:        #151f26;
+      --field:       #1c272f;
+      --field-focus: #22303a;
+      --ink:         #e7eef3;
+      --ink-soft:    #9db0bd;
+      --ink-faint:   #6c8090;
+      --line:        #26333d;
+      --accent:      #2ec4ad;
+      --accent-deep: #17a892;
+      --accent-tint: #16302e;
+      --on-accent:   #04211d;
+      --danger:      #ff7b6b;
+      --shadow:      0 1px 2px rgba(0,0,0,.4), 0 24px 50px -20px rgba(0,0,0,.7);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    padding: 28px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(120% 90% at 12% 0%, var(--bg-a) 0%, var(--bg-b) 62%, var(--bg-b) 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- header ---------- */
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 880px;
+  }
+  .mark {
+    width: 42px; height: 42px;
+    flex: none;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 8px 18px -8px var(--accent-deep);
+  }
+  .mark svg { width: 22px; height: 22px; display: block; }
+  .masthead h1 {
+    margin: 0;
+    font-size: 1.22rem;
+    letter-spacing: -.02em;
+  }
+  .masthead p {
+    margin: 2px 0 0;
+    font-size: .82rem;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- card shell ---------- */
+  .card {
+    width: 100%;
+    max-width: 880px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    overflow: hidden;
+  }
+  .controls { padding: 30px 30px 32px; }
+  .summary  { padding: 26px; background: var(--accent-tint); border-left: 1px solid var(--line); }
+
+  @media (max-width: 720px) {
+    .card { grid-template-columns: 1fr; }
+    .controls { padding: 24px 22px 26px; }
+    .summary  { border-left: none; border-top: 1px solid var(--line); padding: 22px; }
+  }
+
+  /* ---------- form bits ---------- */
+  .field + .field { margin-top: 24px; }
+
+  .field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+  label, .label {
+    font-size: .76rem;
+    font-weight: 650;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .hint { font-size: .74rem; color: var(--ink-faint); }
+  .hint.error { color: var(--danger); font-weight: 600; }
+
+  .money {
+    position: relative;
+    display: block;
+  }
+  .money .sigil {
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    font: inherit;
+    font-size: 1.45rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    background: var(--field);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 13px 16px;
+    text-align: right;
+    transition: background .16s ease, border-color .16s ease;
+  }
+  input.with-sigil { padding-left: 34px; }
+  input::placeholder { color: var(--ink-faint); font-weight: 500; }
+  input:hover { background: var(--field-focus); }
+  input:focus {
+    outline: none;
+    background: var(--field-focus);
+    border-color: var(--accent);
+  }
+  input.invalid { border-color: var(--danger); }
+
+  /* ---------- tip chips ---------- */
+  .chips {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .chip {
+    font: inherit;
+    font-size: 1.02rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: var(--field);
+    border: 1.5px solid transparent;
+    border-radius: 11px;
+    padding: 11px 4px;
+    cursor: pointer;
+    transition: background .14s ease, color .14s ease, transform .08s ease;
+  }
+  .chip:hover { background: var(--accent-tint); }
+  .chip:active { transform: translateY(1px); }
+  .chip[aria-pressed="true"] {
+    background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+    color: var(--on-accent);
+  }
+  .chip:focus-visible, .step:focus-visible, .ghost:focus-visible,
+  .switch input:focus-visible + .track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chip-custom { position: relative; }
+  .chip-custom input {
+    font-size: 1.02rem;
+    text-align: center;
+    padding: 11px 4px;
+    border-radius: 11px;
+  }
+
+  /* ---------- people stepper ---------- */
+  .stepper {
+    display: grid;
+    grid-template-columns: 46px 1fr 46px;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .step {
+    font: inherit;
+    font-size: 1.3rem;
+    line-height: 1;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--field);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .14s ease, color .14s ease;
+  }
+  .step:hover:not(:disabled) { background: var(--accent-tint); color: var(--accent-deep); }
+  .step:disabled { opacity: .4; cursor: not-allowed; }
+  .stepper input { text-align: center; }
+
+  /* ---------- round-up switch ---------- */
+  .switch {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .track {
+    flex: none;
+    width: 44px; height: 25px;
+    border-radius: 999px;
+    background: var(--line);
+    position: relative;
+    transition: background .18s ease;
+  }
+  .track::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    transition: transform .18s cubic-bezier(.3,.8,.4,1);
+  }
+  .switch input:checked + .track { background: var(--accent); }
+  .switch input:checked + .track::after { transform: translateX(19px); }
+  .switch-text strong { display: block; font-size: .92rem; font-weight: 600; }
+  .switch-text span   { display: block; font-size: .76rem; color: var(--ink-faint); margin-top: 1px; }
+
+  /* ---------- summary side ---------- */
+  .hero {
+    background: linear-gradient(155deg, var(--accent), var(--accent-deep));
+    border-radius: 14px;
+    padding: 20px 20px 22px;
+    color: var(--on-accent);
+  }
+  .hero .cap {
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    opacity: .78;
+  }
+  .hero .amount {
+    margin-top: 6px;
+    font-size: 2.7rem;
+    font-weight: 700;
+    letter-spacing: -.035em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    word-break: break-all;
+  }
+  .hero .sub {
+    margin-top: 8px;
+    font-size: .8rem;
+    opacity: .82;
+  }
+
+  .lines { margin-top: 18px; }
+  .line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 2px;
+    font-size: .88rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .line:last-of-type { border-bottom: none; }
+  .line dt { color: var(--ink-soft); }
+  .line dd {
+    margin: 0;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+  }
+  .line.total {
+    margin-top: 4px;
+    padding-top: 13px;
+    border-top: 1.5px solid var(--line);
+    font-size: .98rem;
+  }
+  .line.total dt { color: var(--ink); font-weight: 600; }
+
+  .ghost {
+    margin-top: 18px;
+    width: 100%;
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 650;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    border-radius: 11px;
+    padding: 11px;
+    cursor: pointer;
+    transition: background .14s ease, color .14s ease, opacity .14s ease;
+  }
+  .ghost:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
+  .ghost:disabled { opacity: .35; cursor: not-allowed; }
+  @media (prefers-color-scheme: dark) { .ghost { color: var(--accent); } }
+
+  .foot {
+    width: 100%;
+    max-width: 880px;
+    font-size: .74rem;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v18"></path>
+        <path d="M16.5 7.2c-.7-1.3-2.4-2-4.5-2-2.5 0-4.2 1.1-4.2 2.9 0 4.3 9 2.2 9 6.6 0 1.9-1.9 3.1-4.6 3.1-2.4 0-4.2-.8-4.9-2.3"></path>
+      </svg>
+    </div>
+    <div>
+      <h1>Split</h1>
+      <p>Tip and total, divided evenly.</p>
+    </div>
+  </header>
+
+  <div class="card">
+
+    <!-- ============ inputs ============ -->
+    <section class="controls">
+
+      <div class="field">
+        <div class="field-head">
+          <label for="bill">Bill amount</label>
+          <span class="hint" id="bill-hint"></span>
+        </div>
+        <span class="money">
+          <span class="sigil">$</span>
+          <input id="bill" class="with-sigil" type="text" inputmode="decimal"
+                 autocomplete="off" placeholder="0.00" aria-describedby="bill-hint">
+        </span>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="label" id="tip-label">Tip percentage</span>
+          <span class="hint" id="tip-hint"></span>
+        </div>
+        <div class="chips" role="group" aria-labelledby="tip-label">
+          <button class="chip" type="button" data-tip="10" aria-pressed="false">10%</button>
+          <button class="chip" type="button" data-tip="15" aria-pressed="false">15%</button>
+          <button class="chip" type="button" data-tip="18" aria-pressed="true">18%</button>
+          <button class="chip" type="button" data-tip="20" aria-pressed="false">20%</button>
+          <button class="chip" type="button" data-tip="25" aria-pressed="false">25%</button>
+          <span class="chip-custom">
+            <input id="tip-custom" type="text" inputmode="decimal" autocomplete="off"
+                   placeholder="Custom" aria-label="Custom tip percentage">
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="people">Split between</label>
+          <span class="hint" id="people-hint"></span>
+        </div>
+        <div class="stepper">
+          <button class="step" type="button" id="minus" aria-label="One fewer person">&minus;</button>
+          <input id="people" type="text" inputmode="numeric" autocomplete="off" value="2"
+                 aria-describedby="people-hint">
+          <button class="step" type="button" id="plus" aria-label="One more person">+</button>
+        </div>
+      </div>
+
+      <label class="switch">
+        <input type="checkbox" id="roundup">
+        <span class="track" aria-hidden="true"></span>
+        <span class="switch-text">
+          <strong>Round up each share</strong>
+          <span>Everyone pays a whole dollar; the extra goes to the tip.</span>
+        </span>
+      </label>
+
+    </section>
+
+    <!-- ============ results ============ -->
+    <section class="summary" aria-live="polite">
+
+      <div class="hero">
+        <div class="cap">Each person pays</div>
+        <div class="amount" id="per-person">$0.00</div>
+        <div class="sub" id="per-person-sub">Enter a bill to get started.</div>
+      </div>
+
+      <dl class="lines">
+        <div class="line">
+          <dt>Bill per person</dt>
+          <dd id="base-each">$0.00</dd>
+        </div>
+        <div class="line">
+          <dt>Tip per person</dt>
+          <dd id="tip-each">$0.00</dd>
+        </div>
+        <div class="line">
+          <dt>Total tip</dt>
+          <dd id="tip-total">$0.00</dd>
+        </div>
+        <div class="line total">
+          <dt>Grand total</dt>
+          <dd id="grand-total">$0.00</dd>
+        </div>
+      </dl>
+
+      <button class="ghost" type="button" id="reset" disabled>Reset</button>
+    </section>
+
+  </div>
+
+  <p class="foot">Works offline. Nothing you type leaves this page.</p>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- state ---------- */
+  var PRESETS = [10, 15, 18, 20, 25];
+  var DEFAULTS = { bill: "", tipPct: 18, custom: "", people: "2", roundUp: false };
+  var state = Object.assign({}, DEFAULTS);
+
+  /* ---------- helpers ---------- */
+  var money = new Intl.NumberFormat("en-US", {
+    style: "currency", currency: "USD",
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  // Everything is computed in integer cents so repeated division
+  // never drifts by a fraction of a penny.
+  function fromCents(c) { return money.format(c / 100); }
+
+  function parseNumber(raw) {
+    var cleaned = String(raw).replace(/[^0-9.]/g, "");
+    // keep only the first decimal point
+    var firstDot = cleaned.indexOf(".");
+    if (firstDot !== -1) {
+      cleaned = cleaned.slice(0, firstDot + 1) +
+                cleaned.slice(firstDot + 1).replace(/\./g, "");
+    }
+    if (cleaned === "" || cleaned === ".") return null;
+    var n = parseFloat(cleaned);
+    return isFinite(n) ? n : null;
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  var el = {
+    bill:      $("bill"),
+    billHint:  $("bill-hint"),
+    tipHint:   $("tip-hint"),
+    custom:    $("tip-custom"),
+    chips:     Array.prototype.slice.call(document.querySelectorAll(".chip")),
+    people:    $("people"),
+    peopleHint:$("people-hint"),
+    minus:     $("minus"),
+    plus:      $("plus"),
+    roundUp:   $("roundup"),
+    perPerson: $("per-person"),
+    perSub:    $("per-person-sub"),
+    baseEach:  $("base-each"),
+    tipEach:   $("tip-each"),
+    tipTotal:  $("tip-total"),
+    grand:     $("grand-total"),
+    reset:     $("reset")
+  };
+
+  /* ---------- the math ---------- */
+  function compute() {
+    var bill   = parseNumber(state.bill);
+    var people = parseNumber(state.people);
+    var pct    = state.tipPct;
+
+    var billCents = bill === null ? 0 : Math.round(bill * 100);
+    var headcount = people === null ? 0 : Math.floor(people);
+
+    var valid = billCents > 0 && headcount >= 1;
+    if (!valid) {
+      return { valid: false, headcount: headcount };
+    }
+
+    var tipCents   = Math.round(billCents * pct / 100);
+    var totalCents = billCents + tipCents;
+    var eachCents  = totalCents / headcount;
+    var rounded    = false;
+
+    if (state.roundUp) {
+      var up = Math.ceil(eachCents / 100) * 100;
+      if (up !== eachCents) {
+        rounded    = true;
+        eachCents  = up;
+        totalCents = up * headcount;
+        tipCents   = totalCents - billCents;
+      }
+    }
+
+    return {
+      valid: true,
+      headcount: headcount,
+      rounded: rounded,
+      eachCents: eachCents,
+      baseEachCents: billCents / headcount,
+      tipEachCents: tipCents / headcount,
+      tipCents: tipCents,
+      totalCents: totalCents,
+      effectivePct: (tipCents / billCents) * 100
+    };
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var r = compute();
+    var billTyped = state.bill.trim() !== "";
+    var billVal   = parseNumber(state.bill);
+
+    // input validity styling + hints
+    var badBill = billTyped && (billVal === null || billVal <= 0);
+    el.bill.classList.toggle("invalid", badBill);
+    el.billHint.textContent = badBill ? "Enter an amount above zero" : "";
+    el.billHint.className = "hint" + (badBill ? " error" : "");
+
+    var badPeople = r.headcount < 1;
+    el.people.classList.toggle("invalid", badPeople);
+    el.peopleHint.textContent = badPeople ? "At least 1 person" : "";
+    el.peopleHint.className = "hint" + (badPeople ? " error" : "");
+    el.minus.disabled = r.headcount <= 1;
+
+    el.tipHint.textContent = state.tipPct > 0 ? state.tipPct + "% of the bill" : "No tip";
+
+    el.reset.disabled = !billTyped && state.people === DEFAULTS.people &&
+                        state.tipPct === DEFAULTS.tipPct && !state.roundUp &&
+                        state.custom === "";
+
+    if (!r.valid) {
+      setAmount(el.perPerson, 0);
+      el.perSub.textContent = badBill || badPeople
+        ? "Fix the highlighted field."
+        : "Enter a bill to get started.";
+      el.baseEach.textContent = money.format(0);
+      el.tipEach.textContent  = money.format(0);
+      el.tipTotal.textContent = money.format(0);
+      el.grand.textContent    = money.format(0);
+      return;
+    }
+
+    setAmount(el.perPerson, r.eachCents);
+    el.perSub.textContent = r.rounded
+      ? "Rounded up — effective tip " + r.effectivePct.toFixed(1) + "%"
+      : (r.headcount === 1 ? "Just you." : "Across " + r.headcount + " people.");
+
+    el.baseEach.textContent = fromCents(r.baseEachCents);
+    el.tipEach.textContent  = fromCents(r.tipEachCents);
+    el.tipTotal.textContent = fromCents(r.tipCents);
+    el.grand.textContent    = fromCents(r.totalCents);
+  }
+
+  /* ---------- animated hero number ---------- */
+  var reduceMotion = window.matchMedia &&
+                     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var shown = 0, frame = null;
+
+  function setAmount(node, targetCents) {
+    if (reduceMotion) { shown = targetCents; node.textContent = fromCents(targetCents); return; }
+    var from = shown, delta = targetCents - from;
+    if (Math.abs(delta) < 0.5) { shown = targetCents; node.textContent = fromCents(targetCents); return; }
+    var start = null, dur = 260;
+    if (frame) cancelAnimationFrame(frame);
+    function tick(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - t, 3);
+      shown = from + delta * eased;
+      node.textContent = fromCents(shown);
+      if (t < 1) frame = requestAnimationFrame(tick);
+      else { shown = targetCents; node.textContent = fromCents(targetCents); frame = null; }
+    }
+    frame = requestAnimationFrame(tick);
+  }
+
+  /* ---------- wiring ---------- */
+  function selectTip(pct, fromCustom) {
+    state.tipPct = pct;
+    el.chips.forEach(function (c) {
+      c.setAttribute("aria-pressed", String(!fromCustom && Number(c.dataset.tip) === pct));
+    });
+    if (!fromCustom) el.custom.value = state.custom = "";
+    render();
+  }
+
+  el.bill.addEventListener("input", function () {
+    state.bill = this.value;
+    render();
+  });
+  el.bill.addEventListener("blur", function () {
+    var n = parseNumber(this.value);
+    if (n !== null && n > 0) { this.value = n.toFixed(2); state.bill = this.value; render(); }
+  });
+
+  el.chips.forEach(function (chip) {
+    chip.addEventListener("click", function () { selectTip(Number(chip.dataset.tip), false); });
+  });
+
+  el.custom.addEventListener("input", function () {
+    state.custom = this.value;
+    var n = parseNumber(this.value);
+    if (n === null) { selectTip(0, true); return; }
+    if (n > 100) { n = 100; this.value = "100"; state.custom = "100"; }
+    selectTip(n, true);
+  });
+
+  function setPeople(n) {
+    n = Math.max(1, Math.min(999, n));
+    state.people = String(n);
+    el.people.value = state.people;
+    render();
+  }
+  el.people.addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3);
+    state.people = this.value;
+    render();
+  });
+  el.people.addEventListener("blur", function () {
+    var n = parseNumber(this.value);
+    setPeople(n === null ? 1 : Math.floor(n));
+  });
+  el.minus.addEventListener("click", function () {
+    setPeople(Math.floor(parseNumber(state.people) || 1) - 1);
+  });
+  el.plus.addEventListener("click", function () {
+    setPeople(Math.floor(parseNumber(state.people) || 0) + 1);
+  });
+
+  el.roundUp.addEventListener("change", function () {
+    state.roundUp = this.checked;
+    render();
+  });
+
+  el.reset.addEventListener("click", function () {
+    state = Object.assign({}, DEFAULTS);
+    el.bill.value = "";
+    el.custom.value = "";
+    el.people.value = DEFAULTS.people;
+    el.roundUp.checked = false;
+    selectTip(DEFAULTS.tipPct, false);
+    el.bill.focus();
+  });
+
+  // Enter anywhere in the form just commits the field.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.tagName === "INPUT") e.target.blur();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
