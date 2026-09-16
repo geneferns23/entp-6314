@@ -281,6 +281,13 @@ button {
   padding: 0.5rem 0.75rem;
 }
 
+.review-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0.5rem 0 0;
+}
+
 .review-form legend {
   font-weight: bold;
   font-size: 0.9rem;

@@ -97,6 +97,8 @@ Started from a button on each card. Presents exactly three required questions:
 2. "If deciding today, would you sign up again?" — Yes / No / Not sure
 3. "Do you have another service with a similar benefit?" — Yes / No / Not sure
 
+The app has no category or type data for subscriptions (categories/tags are out of scope), so it cannot determine on its own whether two subscriptions serve a similar purpose — question 3 stays a self-report. To make it easier to answer accurately, the question lists the names of the user's other tracked subscriptions underneath it, so they don't have to recall their own list from memory. It is only a memory aid; the app still never judges similarity itself.
+
 On submit, all three answers must be present. The answers and the submission date are saved onto the subscription (`review` field) and persisted. The card then displays the result message based on the answer combination:
 
 | Q1 | Q2 | Q3 | Message |

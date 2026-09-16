@@ -366,7 +366,24 @@ function renderReviewForm(container, subscription) {
   for (const question of REVIEW_QUESTIONS) {
     const fieldName = `review-${subscription.id}-${question.key}`;
     fieldNames[question.key] = fieldName;
-    form.appendChild(buildReviewFieldset(fieldName, question));
+    const fieldset = buildReviewFieldset(fieldName, question);
+
+    // The app has no category data to know what's actually similar, so it
+    // can't answer this one for you -- but listing your other subscriptions
+    // here saves you from having to remember your own list from memory.
+    if (question.key === 'hasSimilarAlternative') {
+      const otherNames = subscriptions
+        .filter((other) => other.id !== subscription.id)
+        .map((other) => other.name);
+      if (otherNames.length > 0) {
+        const hint = document.createElement('p');
+        hint.className = 'review-hint';
+        hint.textContent = `Your other subscriptions: ${otherNames.join(', ')}`;
+        fieldset.appendChild(hint);
+      }
+    }
+
+    form.appendChild(fieldset);
   }
 
   const errorEl = document.createElement('span');
