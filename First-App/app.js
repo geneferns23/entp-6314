@@ -453,12 +453,14 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
   return li;
 }
 
-function renderSummary(today) {
+function renderSummary(withComputed, today) {
   const summaryEl = document.getElementById('summary');
+  summaryEl.innerHTML = '';
+
   if (subscriptions.length === 0) {
-    summaryEl.textContent = '';
     return;
   }
+
   const total = getUpcomingRenewalsTotal(
     subscriptions.map((subscription) => ({
       cost: subscription.cost,
@@ -467,10 +469,31 @@ function renderSummary(today) {
     })),
     today
   );
-  summaryEl.textContent = `Renewing in the next 30 days: $${total.toFixed(2)}`;
+
+  const soonCount = withComputed.filter(
+    (item) => getRenewalStatus(item.daysAway) === 'Renewing soon'
+  ).length;
+
+  const attentionText = soonCount > 0
+    ? ` — ${soonCount} subscription${soonCount === 1 ? '' : 's'} need${soonCount === 1 ? 's' : ''} attention`
+    : '';
+
+  const hero = document.createElement('div');
+  hero.className = 'hero-stat';
+  hero.innerHTML = `
+    <div class="hero-stat-amount">$${total.toFixed(2)}</div>
+    <div class="hero-stat-label">renewing in the next 30 days${attentionText}</div>
+  `;
+
+  const quietStats = document.createElement('p');
+  quietStats.className = 'quiet-stats';
+  quietStats.textContent = `${subscriptions.length} subscription${subscriptions.length === 1 ? '' : 's'} tracked`;
+
+  summaryEl.appendChild(hero);
+  summaryEl.appendChild(quietStats);
 }
 
-function renderList(today) {
+function renderList(withComputed, today) {
   const listEl = document.getElementById('subscription-list');
   const emptyStateEl = document.getElementById('empty-state');
   listEl.innerHTML = '';
@@ -481,15 +504,6 @@ function renderList(today) {
   }
   emptyStateEl.hidden = true;
 
-  const withComputed = subscriptions.map((subscription) => {
-    const anchor = parseISODate(subscription.anchorDate);
-    const nextRenewal = getNextRenewalDate(anchor, subscription.frequency, today);
-    const daysAway = getDaysAway(nextRenewal, today);
-    return { subscription, nextRenewal, daysAway };
-  });
-
-  withComputed.sort((a, b) => a.daysAway - b.daysAway);
-
   for (const item of withComputed) {
     listEl.appendChild(renderCard(item, today));
   }
@@ -497,8 +511,17 @@ function renderList(today) {
 
 function render() {
   const today = getToday();
-  renderSummary(today);
-  renderList(today);
+
+  const withComputed = subscriptions.map((subscription) => {
+    const anchor = parseISODate(subscription.anchorDate);
+    const nextRenewal = getNextRenewalDate(anchor, subscription.frequency, today);
+    const daysAway = getDaysAway(nextRenewal, today);
+    return { subscription, nextRenewal, daysAway };
+  });
+  withComputed.sort((a, b) => a.daysAway - b.daysAway);
+
+  renderSummary(withComputed, today);
+  renderList(withComputed, today);
 }
 
 render();

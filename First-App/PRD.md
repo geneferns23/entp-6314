@@ -155,7 +155,7 @@ These exact cases are the acceptance test for the Phase 1 calculation logic.
 A pastel palette, defined as CSS variables in `styles.css`.
 
 **Neutrals**
-- Page background `#FAF8F3`, card background `#FFFFFF`, borders `#E6E2D9`, text `#22252B`, muted text `#5F5E58`.
+- Page background `#EFE8DA`, card background `#FFFFFF`, borders `#DCD4C4`, text `#22252B`, muted text `#5F5E58`. (Page background and border were darkened slightly from the original `#FAF8F3` / `#E6E2D9` — against near-white, white cards didn't visibly separate from the page.)
 
 **Blue — interactive only**
 - Primary buttons: `#2A3A5C` background, white text.
@@ -197,6 +197,12 @@ A pastel palette, defined as CSS variables in `styles.css`.
 - Each card shows the next renewal date and the relative renewal text on one combined line (e.g. "September 17, 2026 — Renews in 2 days") instead of two separate lines, since both describe the same underlying fact.
 - Each card's "Start renewal review" / delete controls sit together below a divider line, visually separating the card's information from its actions.
 - The add-subscription form pairs Cost with Billing frequency, and Next renewal date with Cancellation notice, side by side on wide screens; each pair wraps to stacked full-width fields on narrow screens (name stays full-width always).
+- The subscription list is a responsive grid (cards at least 260px wide, as many columns as fit) rather than a single stacked column, so a wide screen shows more subscriptions without scrolling.
+
+**Summary hero stat**
+
+- The summary is one visual focal point, not a flat text line or a row of equal-weight tiles: a large, bold dollar amount ("renewing in the next 30 days") on a blush background, since that number is inherently the urgent one. Everything else about the summary — the subscription count, the "N subscriptions need attention" qualifier — is small, muted, plain text, so the eye has exactly one obvious place to land first.
+- Hidden entirely in the empty state, same as before.
 
 ## Out of scope
 
