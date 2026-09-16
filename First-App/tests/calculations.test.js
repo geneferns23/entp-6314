@@ -4,6 +4,8 @@ import {
   getDaysAway,
   getRenewalStatus,
   getCancelByInfo,
+  parseISODate,
+  getUpcomingRenewalsTotal,
 } from '../calculations.js';
 
 // Small runner: no framework, just plain assertions. If anything throws,
@@ -70,6 +72,20 @@ test('renewal 2026-09-20 with 10 days notice -> deadline passed', () => {
   const result = getCancelByInfo(renewal, 10, today);
   assert.strictEqual(result.deadlinePassed, true);
   assert.strictEqual(result.date, null);
+});
+
+test('parseISODate splits a date string without UTC parsing', () => {
+  assert.deepStrictEqual(parseISODate('2026-09-15'), { year: 2026, month: 9, day: 15 });
+});
+
+test('getUpcomingRenewalsTotal sums only subscriptions renewing within 30 days', () => {
+  const subscriptions = [
+    { cost: 10, frequency: 'monthly', anchor: { year: 2026, month: 9, day: 15 } }, // 0 days away
+    { cost: 20, frequency: 'monthly', anchor: { year: 2026, month: 8, day: 16 } }, // 1 day away
+    { cost: 30, frequency: 'annual', anchor: { year: 2026, month: 1, day: 1 } }, // far in the future
+  ];
+  const total = getUpcomingRenewalsTotal(subscriptions, today);
+  assert.strictEqual(total, 30);
 });
 
 console.log('All tests passed.');

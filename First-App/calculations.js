@@ -88,3 +88,26 @@ export function getCancelByInfo(nextRenewal, noticeDays, today) {
     deadlinePassed,
   };
 }
+
+// Splits a "YYYY-MM-DD" string (e.g. from an <input type="date">) into a
+// date object by hand, since new Date("YYYY-MM-DD") parses as UTC and can
+// display as the previous day in US time zones.
+export function parseISODate(isoString) {
+  const [year, month, day] = isoString.split('-').map(Number);
+  return { year, month, day };
+}
+
+// Sums the cost of every subscription whose next renewal (from today)
+// falls within the next 0-30 days, counting each subscription once.
+// subscriptions: array of { cost, frequency, anchor }.
+export function getUpcomingRenewalsTotal(subscriptions, today) {
+  let total = 0;
+  for (const subscription of subscriptions) {
+    const nextRenewal = getNextRenewalDate(subscription.anchor, subscription.frequency, today);
+    const daysAway = getDaysAway(nextRenewal, today);
+    if (daysAway >= 0 && daysAway <= 30) {
+      total += subscription.cost;
+    }
+  }
+  return total;
+}
