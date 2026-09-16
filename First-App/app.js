@@ -4,9 +4,40 @@ import {
   getRenewalStatus,
   getCancelByInfo,
   parseISODate,
+  formatISODate,
   getUpcomingRenewalsTotal,
 } from './calculations.js';
 import { loadSubscriptions, saveSubscriptions } from './storage.js';
+
+const REVIEW_DISCLAIMER = "This summary reflects your answers only. It isn't financial advice.";
+
+const REVIEW_QUESTIONS = [
+  {
+    key: 'usedRecently',
+    legend: 'Have you used this recently?',
+    options: [['yes', 'Yes'], ['no', 'No']],
+  },
+  {
+    key: 'wouldSignUpAgain',
+    legend: 'If deciding today, would you sign up again?',
+    options: [['yes', 'Yes'], ['no', 'No'], ['unsure', 'Not sure']],
+  },
+  {
+    key: 'hasSimilarAlternative',
+    legend: 'Do you have another service with a similar benefit?',
+    options: [['yes', 'Yes'], ['no', 'No'], ['unsure', 'Not sure']],
+  },
+];
+
+function getReviewResultMessage(review) {
+  if (review.usedRecently === 'yes' && review.wouldSignUpAgain === 'yes' && review.hasSimilarAlternative === 'no') {
+    return 'Your answers indicate that this subscription is currently providing value for you.';
+  }
+  if (review.usedRecently === 'no' && review.wouldSignUpAgain === 'no' && review.hasSimilarAlternative === 'yes') {
+    return 'Your answers suggest this subscription may be worth reviewing before renewal.';
+  }
+  return 'Your answers are mixed. Consider reviewing the cost, usage, and alternatives before renewal.';
+}
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -182,6 +213,138 @@ function renderConfirmDelete(container, subscription) {
   container.appendChild(cancelButton);
 }
 
+function renderReviewControl(container, subscription) {
+  container.innerHTML = '';
+  if (subscription.review) {
+    renderReviewResult(container, subscription);
+  } else {
+    renderStartReviewButton(container, subscription, 'Start renewal review');
+  }
+}
+
+function renderStartReviewButton(container, subscription, label) {
+  container.innerHTML = '';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'start-review-button';
+  button.textContent = label;
+  button.addEventListener('click', () => {
+    renderReviewForm(container, subscription);
+  });
+  container.appendChild(button);
+}
+
+function renderReviewResult(container, subscription) {
+  container.innerHTML = '';
+
+  const messageEl = document.createElement('p');
+  messageEl.className = 'review-message';
+  messageEl.textContent = getReviewResultMessage(subscription.review);
+
+  const disclaimerEl = document.createElement('p');
+  disclaimerEl.className = 'review-disclaimer';
+  disclaimerEl.textContent = REVIEW_DISCLAIMER;
+
+  const dateEl = document.createElement('p');
+  dateEl.className = 'review-date';
+  dateEl.textContent = `Reviewed on ${formatDisplayDate(parseISODate(subscription.review.answeredOn))}`;
+
+  const retakeButton = document.createElement('button');
+  retakeButton.type = 'button';
+  retakeButton.className = 'start-review-button';
+  retakeButton.textContent = 'Retake review';
+  retakeButton.addEventListener('click', () => {
+    renderReviewForm(container, subscription);
+  });
+
+  container.appendChild(messageEl);
+  container.appendChild(disclaimerEl);
+  container.appendChild(dateEl);
+  container.appendChild(retakeButton);
+}
+
+function buildReviewFieldset(name, question) {
+  const fieldset = document.createElement('fieldset');
+  const legend = document.createElement('legend');
+  legend.textContent = question.legend;
+  fieldset.appendChild(legend);
+
+  for (const [value, optionLabel] of question.options) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = name;
+    input.value = value;
+    label.appendChild(input);
+    label.append(` ${optionLabel}`);
+    fieldset.appendChild(label);
+  }
+
+  return fieldset;
+}
+
+function getSelectedRadioValue(form, name) {
+  const selected = form.querySelector(`input[name="${name}"]:checked`);
+  return selected ? selected.value : null;
+}
+
+function renderReviewForm(container, subscription) {
+  container.innerHTML = '';
+
+  const form = document.createElement('form');
+  form.className = 'review-form';
+  form.noValidate = true;
+
+  const fieldNames = {};
+  for (const question of REVIEW_QUESTIONS) {
+    const fieldName = `review-${subscription.id}-${question.key}`;
+    fieldNames[question.key] = fieldName;
+    form.appendChild(buildReviewFieldset(fieldName, question));
+  }
+
+  const errorEl = document.createElement('span');
+  errorEl.className = 'error';
+  form.appendChild(errorEl);
+
+  const saveButton = document.createElement('button');
+  saveButton.type = 'submit';
+  saveButton.textContent = 'Save review';
+  form.appendChild(saveButton);
+
+  const cancelButton = document.createElement('button');
+  cancelButton.type = 'button';
+  cancelButton.textContent = 'Cancel';
+  cancelButton.addEventListener('click', () => {
+    renderReviewControl(container, subscription);
+  });
+  form.appendChild(cancelButton);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const answers = {};
+    for (const question of REVIEW_QUESTIONS) {
+      answers[question.key] = getSelectedRadioValue(form, fieldNames[question.key]);
+    }
+
+    if (!answers.usedRecently || !answers.wouldSignUpAgain || !answers.hasSimilarAlternative) {
+      errorEl.textContent = 'Please answer all three questions.';
+      return;
+    }
+
+    subscription.review = {
+      usedRecently: answers.usedRecently,
+      wouldSignUpAgain: answers.wouldSignUpAgain,
+      hasSimilarAlternative: answers.hasSimilarAlternative,
+      answeredOn: formatISODate(getToday()),
+    };
+    saveSubscriptions(subscriptions);
+    render();
+  });
+
+  container.appendChild(form);
+}
+
 function renderCard({ subscription, nextRenewal, daysAway }, today) {
   const li = document.createElement('li');
   li.className = 'subscription-card';
@@ -216,6 +379,11 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
     ${cancelByText ? `<p class="cancel-by">${cancelByText}</p>` : ''}
   `;
   li.querySelector('.name').textContent = subscription.name;
+
+  const reviewContainer = document.createElement('div');
+  reviewContainer.className = 'review-container';
+  renderReviewControl(reviewContainer, subscription);
+  li.appendChild(reviewContainer);
 
   const deleteContainer = document.createElement('div');
   deleteContainer.className = 'delete-container';

@@ -5,6 +5,7 @@ import {
   getRenewalStatus,
   getCancelByInfo,
   parseISODate,
+  formatISODate,
   getUpcomingRenewalsTotal,
 } from '../calculations.js';
 
@@ -76,6 +77,10 @@ test('renewal 2026-09-20 with 10 days notice -> deadline passed', () => {
 
 test('parseISODate splits a date string without UTC parsing', () => {
   assert.deepStrictEqual(parseISODate('2026-09-15'), { year: 2026, month: 9, day: 15 });
+});
+
+test('formatISODate pads month and day', () => {
+  assert.strictEqual(formatISODate({ year: 2026, month: 3, day: 5 }), '2026-03-05');
 });
 
 test('getUpcomingRenewalsTotal sums only subscriptions renewing within 30 days', () => {

@@ -116,6 +116,51 @@ button {
   font-weight: bold;
 }
 
+.review-container {
+  margin-top: 0.5rem;
+}
+
+.start-review-button {
+  padding: 0.3rem 0.6rem;
+}
+
+.review-form fieldset {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.review-form legend {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.review-form label {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.review-form button {
+  padding: 0.3rem 0.6rem;
+  margin-right: 0.5rem;
+}
+
+.review-message {
+  font-weight: bold;
+}
+
+.review-disclaimer {
+  font-size: 0.85rem;
+  color: #555;
+  font-style: italic;
+}
+
+.review-date {
+  font-size: 0.85rem;
+  color: #555;
+}
+
 .delete-container {
   margin-top: 0.5rem;
 }

@@ -97,6 +97,12 @@ export function parseISODate(isoString) {
   return { year, month, day };
 }
 
+export function formatISODate(date) {
+  const month = String(date.month).padStart(2, '0');
+  const day = String(date.day).padStart(2, '0');
+  return `${date.year}-${month}-${day}`;
+}
+
 // Sums the cost of every subscription whose next renewal (from today)
 // falls within the next 0-30 days, counting each subscription once.
 // subscriptions: array of { cost, frequency, anchor }.
