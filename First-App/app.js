@@ -5,6 +5,7 @@ import {
   getCancelByInfo,
   parseISODate,
   formatISODate,
+  addDays,
   getUpcomingRenewalsTotal,
 } from './calculations.js';
 import { loadSubscriptions, saveSubscriptions } from './storage.js';
@@ -59,6 +60,50 @@ function generateId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Shown once, only on a visitor's very first load (see the seeding check
+// below), so the app isn't a blank page before anyone has added anything.
+// Dates are relative to today so they still make sense on any visit date.
+function getDefaultSubscriptions(today) {
+  return [
+    {
+      id: 'seed-netflix',
+      name: 'Netflix',
+      cost: 15.49,
+      frequency: 'monthly',
+      anchorDate: formatISODate(addDays(today, 3)),
+      noticeDays: null,
+      review: null,
+    },
+    {
+      id: 'seed-gym',
+      name: 'Gym Membership',
+      cost: 40,
+      frequency: 'monthly',
+      anchorDate: formatISODate(addDays(today, 2)),
+      noticeDays: 10,
+      review: null,
+    },
+    {
+      id: 'seed-spotify',
+      name: 'Spotify',
+      cost: 11.99,
+      frequency: 'monthly',
+      anchorDate: formatISODate(addDays(today, 18)),
+      noticeDays: 5,
+      review: null,
+    },
+    {
+      id: 'seed-adobe',
+      name: 'Adobe Creative Cloud',
+      cost: 599.88,
+      frequency: 'annual',
+      anchorDate: formatISODate(addDays(today, 120)),
+      noticeDays: null,
+      review: null,
+    },
+  ];
+}
+
 function statusClass(status) {
   if (status === 'Renewing soon') {
     return 'soon';
@@ -70,6 +115,10 @@ function statusClass(status) {
 }
 
 let subscriptions = loadSubscriptions();
+if (subscriptions === null) {
+  subscriptions = getDefaultSubscriptions(getToday());
+  saveSubscriptions(subscriptions);
+}
 
 const form = document.getElementById('subscription-form');
 const nameInput = document.getElementById('name');

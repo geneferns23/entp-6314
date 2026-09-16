@@ -1,10 +1,13 @@
 const STORAGE_KEY = 'renewal-radar-subscriptions';
 
+// Returns null when nothing has ever been saved (a brand-new visitor),
+// as opposed to an empty array (someone who deleted every subscription).
+// Callers use that distinction to decide whether to show starter data.
 export function loadSubscriptions() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [];
+    if (raw === null) {
+      return null;
     }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {

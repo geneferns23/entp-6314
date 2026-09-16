@@ -119,6 +119,10 @@ When there are zero subscriptions: show "No subscriptions yet" and a prompt/butt
 
 All additions, deletions, and review submissions are saved to `localStorage` immediately, so the data survives a page refresh. No expiration, sync, or export.
 
+### 8. Starter data on first visit
+
+The very first time the app loads in a browser that has never saved anything under its storage key, it seeds four example subscriptions (covering all three status buckets, both a normal and an already-passed cancel-by date, and both monthly and annual billing) instead of showing the empty state. This is a one-time seed, not a reset: it is keyed off the storage key never having existed at all, not off the list being empty, so a user who deletes every subscription still sees the real empty state from Feature 6, not the starter data again.
+
 ## Date rules
 
 - The anchor date is exactly what the user entered when adding the subscription — never recalculated or overwritten.
@@ -189,7 +193,7 @@ A pastel palette, defined as CSS variables in `styles.css`.
 
 ## Out of scope
 
-Editing an existing subscription, categories/tags, annualized cost display, seeded demo data, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage.
+Editing an existing subscription, categories/tags, annualized cost display, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage. (Seeded demo data was originally out of scope; see Feature 8 — this was revisited so the live site isn't a blank page for a first-time visitor.)
 
 ## Build phases
 

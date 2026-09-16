@@ -103,6 +103,12 @@ export function formatISODate(date) {
   return `${date.year}-${month}-${day}`;
 }
 
+// Adds a (possibly negative) number of whole days to a date.
+export function addDays(date, days) {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return timestampToDate(toUTCTimestamp(date) + days * millisecondsPerDay);
+}
+
 // Sums the cost of every subscription whose next renewal (from today)
 // falls within the next 0-30 days, counting each subscription once.
 // subscriptions: array of { cost, frequency, anchor }.

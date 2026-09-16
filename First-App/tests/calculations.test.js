@@ -6,6 +6,7 @@ import {
   getCancelByInfo,
   parseISODate,
   formatISODate,
+  addDays,
   getUpcomingRenewalsTotal,
 } from '../calculations.js';
 
@@ -81,6 +82,14 @@ test('parseISODate splits a date string without UTC parsing', () => {
 
 test('formatISODate pads month and day', () => {
   assert.strictEqual(formatISODate({ year: 2026, month: 3, day: 5 }), '2026-03-05');
+});
+
+test('addDays shifts forward and across a month boundary', () => {
+  assert.deepStrictEqual(addDays({ year: 2026, month: 9, day: 28 }, 5), { year: 2026, month: 10, day: 3 });
+});
+
+test('addDays accepts a negative count', () => {
+  assert.deepStrictEqual(addDays({ year: 2026, month: 9, day: 3 }, -5), { year: 2026, month: 8, day: 29 });
 });
 
 test('getUpcomingRenewalsTotal sums only subscriptions renewing within 30 days', () => {
