@@ -101,6 +101,24 @@ function getDefaultSubscriptions(today) {
       noticeDays: null,
       review: null,
     },
+    {
+      id: 'seed-hulu-trial',
+      name: 'Hulu (Free Trial)',
+      cost: 7.99,
+      frequency: 'monthly',
+      anchorDate: formatISODate(addDays(today, 2)),
+      noticeDays: 1,
+      review: null,
+    },
+    {
+      id: 'seed-audible-trial',
+      name: 'Audible (Free Trial)',
+      cost: 14.95,
+      frequency: 'monthly',
+      anchorDate: formatISODate(addDays(today, 12)),
+      noticeDays: 3,
+      review: null,
+    },
   ];
 }
 

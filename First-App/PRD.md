@@ -121,7 +121,7 @@ All additions, deletions, and review submissions are saved to `localStorage` imm
 
 ### 8. Starter data on first visit
 
-The very first time the app loads in a browser that has never saved anything under its storage key, it seeds four example subscriptions (covering all three status buckets, both a normal and an already-passed cancel-by date, and both monthly and annual billing) instead of showing the empty state. This is a one-time seed, not a reset: it is keyed off the storage key never having existed at all, not off the list being empty, so a user who deletes every subscription still sees the real empty state from Feature 6, not the starter data again.
+The very first time the app loads in a browser that has never saved anything under its storage key, it seeds six example subscriptions instead of showing the empty state: covering all three status buckets, both a normal and an already-passed cancel-by date, both monthly and annual billing, and two free trials (named "(Free Trial)") with a short 1-3 day cancellation window, representing a subscription that hasn't started charging yet but will unless it's cancelled first. This is a one-time seed, not a reset: it is keyed off the storage key never having existed at all, not off the list being empty, so a user who deletes every subscription still sees the real empty state from Feature 6, not the starter data again.
 
 ## Date rules
 
