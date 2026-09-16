@@ -191,6 +191,10 @@ A pastel palette, defined as CSS variables in `styles.css`.
 
 **Never use:** pastel colors for text or button backgrounds, gradients, emoji, or pill-shaped badges.
 
+**Typography**
+- Headings (the app name, "Your subscriptions," "Add a subscription") use Fraunces, a serif display font loaded from Google Fonts, falling back to Georgia/serif. Body text, labels, and card content stay on the default system sans-serif — the serif is only for headings, so the page doesn't read as all one undifferentiated weight.
+- A short 3px accent rule in the blush-border color sits under the app name, between it and the tagline.
+
 **Layout**
 
 - Page order: header, summary, the subscription list, then the add-subscription form. The list comes first because checking what's renewing is the app's primary reason to open it; adding a subscription is secondary.
