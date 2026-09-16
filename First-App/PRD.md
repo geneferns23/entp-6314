@@ -5,7 +5,7 @@
 
 ## Value proposition
 
-"See what's renewing before it charges you."
+"The subscription tracker that shows what's renewing before it charges you."
 
 ## Target user
 
