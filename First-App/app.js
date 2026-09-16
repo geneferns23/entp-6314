@@ -430,21 +430,25 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
       <span class="status status-${statusClass(status)}">${status}</span>
     </div>
     <p class="cost">$${subscription.cost.toFixed(2)} / ${subscription.frequency}</p>
-    <p class="renewal-date">${formatDisplayDate(nextRenewal)}</p>
-    <p class="relative">${relativeText}</p>
+    <p class="renewal-line">${formatDisplayDate(nextRenewal)} — ${relativeText}</p>
     ${cancelByText ? `<p class="cancel-by${cancelByUrgent ? ' cancel-by-urgent' : ''}">${cancelByText}</p>` : ''}
   `;
   li.querySelector('.name').textContent = subscription.name;
 
+  const actions = document.createElement('div');
+  actions.className = 'card-actions';
+
   const reviewContainer = document.createElement('div');
   reviewContainer.className = 'review-container';
   renderReviewControl(reviewContainer, subscription);
-  li.appendChild(reviewContainer);
+  actions.appendChild(reviewContainer);
 
   const deleteContainer = document.createElement('div');
   deleteContainer.className = 'delete-container';
   renderDeleteControl(deleteContainer, subscription);
-  li.appendChild(deleteContainer);
+  actions.appendChild(deleteContainer);
+
+  li.appendChild(actions);
 
   return li;
 }

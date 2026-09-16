@@ -14,6 +14,15 @@
 
   <section id="summary" aria-live="polite"></section>
 
+  <section id="subscriptions">
+    <h2>Your subscriptions</h2>
+    <div id="empty-state" hidden>
+      <p>No subscriptions yet.</p>
+      <button type="button" id="empty-state-add-button">Add your first one</button>
+    </div>
+    <ul id="subscription-list"></ul>
+  </section>
+
   <section id="add-subscription">
     <h2>Add a subscription</h2>
     <form id="subscription-form" novalidate>
@@ -23,46 +32,41 @@
         <span class="error" id="name-error"></span>
       </div>
 
-      <div class="field">
-        <label for="cost">Cost per billing cycle ($)</label>
-        <input type="number" id="cost" name="cost" step="0.01" min="0">
-        <span class="error" id="cost-error"></span>
+      <div class="field-row">
+        <div class="field">
+          <label for="cost">Cost per billing cycle ($)</label>
+          <input type="number" id="cost" name="cost" step="0.01" min="0">
+          <span class="error" id="cost-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="frequency">Billing frequency</label>
+          <select id="frequency" name="frequency">
+            <option value="" disabled selected>Select...</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <span class="error" id="frequency-error"></span>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="frequency">Billing frequency</label>
-        <select id="frequency" name="frequency">
-          <option value="" disabled selected>Select...</option>
-          <option value="monthly">Monthly</option>
-          <option value="quarterly">Quarterly</option>
-          <option value="annual">Annual</option>
-        </select>
-        <span class="error" id="frequency-error"></span>
-      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="renewal-date">Next renewal date</label>
+          <input type="date" id="renewal-date" name="renewalDate">
+          <span class="error" id="renewal-date-error"></span>
+        </div>
 
-      <div class="field">
-        <label for="renewal-date">Next renewal date</label>
-        <input type="date" id="renewal-date" name="renewalDate">
-        <span class="error" id="renewal-date-error"></span>
-      </div>
-
-      <div class="field">
-        <label for="notice-days">Cancellation notice (days, optional)</label>
-        <input type="number" id="notice-days" name="noticeDays" step="1" min="1" max="365">
-        <span class="error" id="notice-days-error"></span>
+        <div class="field">
+          <label for="notice-days">Cancellation notice (days, optional)</label>
+          <input type="number" id="notice-days" name="noticeDays" step="1" min="1" max="365">
+          <span class="error" id="notice-days-error"></span>
+        </div>
       </div>
 
       <button type="submit">Add subscription</button>
     </form>
-  </section>
-
-  <section id="subscriptions">
-    <h2>Your subscriptions</h2>
-    <div id="empty-state" hidden>
-      <p>No subscriptions yet.</p>
-      <button type="button" id="empty-state-add-button">Add your first one</button>
-    </div>
-    <ul id="subscription-list"></ul>
   </section>
 
   <script type="module" src="./app.js"></script>

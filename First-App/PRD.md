@@ -191,6 +191,13 @@ A pastel palette, defined as CSS variables in `styles.css`.
 
 **Never use:** pastel colors for text or button backgrounds, gradients, emoji, or pill-shaped badges.
 
+**Layout**
+
+- Page order: header, summary, the subscription list, then the add-subscription form. The list comes first because checking what's renewing is the app's primary reason to open it; adding a subscription is secondary.
+- Each card shows the next renewal date and the relative renewal text on one combined line (e.g. "September 17, 2026 — Renews in 2 days") instead of two separate lines, since both describe the same underlying fact.
+- Each card's "Start renewal review" / delete controls sit together below a divider line, visually separating the card's information from its actions.
+- The add-subscription form pairs Cost with Billing frequency, and Next renewal date with Cancellation notice, side by side on wide screens; each pair wraps to stacked full-width fields on narrow screens (name stays full-width always).
+
 ## Out of scope
 
 Editing an existing subscription, categories/tags, annualized cost display, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage. (Seeded demo data was originally out of scope; see Feature 8 — this was revisited so the live site isn't a blank page for a first-time visitor.)
