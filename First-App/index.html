@@ -26,7 +26,7 @@
   </section>
 
   <section id="add-subscription">
-    <h2>Add a subscription</h2>
+    <h2 id="form-heading">Add a subscription</h2>
     <form id="subscription-form" novalidate>
       <div class="field">
         <label for="name">Name</label>
@@ -67,7 +67,8 @@
         </div>
       </div>
 
-      <button type="submit">Add subscription</button>
+      <button type="submit" id="form-submit-button">Add subscription</button>
+      <button type="button" id="cancel-edit-button" hidden>Cancel edit</button>
     </form>
   </section>
 

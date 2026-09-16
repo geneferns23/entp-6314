@@ -79,7 +79,7 @@ On valid submit, the subscription is added to the list and persisted to `localSt
     - **Coming up** — 8–30 days away
     - **Later** — 31+ days away
   - A "Start renewal review" button (see Feature 5) and, once a review exists, the review result message.
-  - A delete control (see Feature 4).
+  - An edit control (see Feature 9) and a delete control (see Feature 4).
 
 ### 3. Summary total
 
@@ -124,6 +124,10 @@ All additions, deletions, and review submissions are saved to `localStorage` imm
 ### 8. Starter data on first visit
 
 The very first time the app loads in a browser that has never saved anything under its storage key, it seeds six example subscriptions instead of showing the empty state: covering all three status buckets, both a normal and an already-passed cancel-by date, both monthly and annual billing, and two free trials (named "(Free Trial)") with a short 1-3 day cancellation window, representing a subscription that hasn't started charging yet but will unless it's cancelled first. This is a one-time seed, not a reset: it is keyed off the storage key never having existed at all, not off the list being empty, so a user who deletes every subscription still sees the real empty state from Feature 6, not the starter data again.
+
+### 9. Edit a subscription
+
+An "Edit" control on each card puts the add-subscription form (Feature 1) into edit mode: the form is pre-filled with that subscription's current name, cost, frequency, renewal date, and notice days, the section heading changes to "Edit subscription," and the submit button changes to "Save changes." A "Cancel edit" control appears alongside it to leave edit mode without saving. Submitting in edit mode re-runs the exact same validation as adding, then updates that subscription's fields in place — its `id` and any saved `review` are left untouched. Only one subscription can be edited at a time; starting a new edit, saving, or cancelling replaces whatever was in progress. Deleting the subscription currently being edited cancels the edit.
 
 ## Date rules
 
@@ -212,7 +216,7 @@ A pastel palette, defined as CSS variables in `styles.css`.
 
 ## Out of scope
 
-Editing an existing subscription, categories/tags, annualized cost display, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage. (Seeded demo data was originally out of scope; see Feature 8 — this was revisited so the live site isn't a blank page for a first-time visitor.)
+Categories/tags, annualized cost display, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage. (Seeded demo data and editing an existing subscription were both originally out of scope; see Feature 8 and Feature 9 — both were revisited once actually using the app made the gaps obvious.)
 
 ## Build phases
 
@@ -240,7 +244,6 @@ Deliverable: responsive layout for mobile widths, keyboard navigability, status 
 
 - Single-device only: data lives in one browser's `localStorage` and does not sync across devices or browsers.
 - No backup or export: clearing browser data or site storage permanently deletes all subscriptions.
-- No editing: fixing a typo or changing a date requires deleting and re-adding the subscription.
 - No reminders: the app must be opened to see what's renewing; it doesn't send notifications.
 - Manual entry only: no bank/email integration, so accuracy depends on the user keeping entries up to date.
 - Review guidance is generic and rule-based from three yes/no/unsure answers — it is not personalized financial advice and the app deliberately avoids telling users what to do.

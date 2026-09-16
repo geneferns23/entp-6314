@@ -144,6 +144,41 @@ const costInput = document.getElementById('cost');
 const frequencyInput = document.getElementById('frequency');
 const renewalDateInput = document.getElementById('renewal-date');
 const noticeDaysInput = document.getElementById('notice-days');
+const formHeading = document.getElementById('form-heading');
+const submitButton = document.getElementById('form-submit-button');
+const cancelEditButton = document.getElementById('cancel-edit-button');
+
+// null while adding a new subscription; the id of the subscription being
+// changed while the form is in edit mode.
+let editingId = null;
+
+function startEdit(subscription) {
+  editingId = subscription.id;
+  clearErrors();
+
+  nameInput.value = subscription.name;
+  costInput.value = subscription.cost;
+  frequencyInput.value = subscription.frequency;
+  renewalDateInput.value = subscription.anchorDate;
+  noticeDaysInput.value = subscription.noticeDays == null ? '' : subscription.noticeDays;
+
+  formHeading.textContent = 'Edit subscription';
+  submitButton.textContent = 'Save changes';
+  cancelEditButton.hidden = false;
+
+  document.getElementById('add-subscription').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function endEdit() {
+  editingId = null;
+  form.reset();
+  clearErrors();
+  formHeading.textContent = 'Add a subscription';
+  submitButton.textContent = 'Add subscription';
+  cancelEditButton.hidden = true;
+}
+
+cancelEditButton.addEventListener('click', endEdit);
 
 const errorElements = {
   name: document.getElementById('name-error'),
@@ -215,6 +250,22 @@ form.addEventListener('submit', (event) => {
     return;
   }
 
+  if (editingId) {
+    const subscription = subscriptions.find((s) => s.id === editingId);
+    if (subscription) {
+      subscription.name = values.name.trim();
+      subscription.cost = Number(values.cost);
+      subscription.frequency = values.frequency;
+      subscription.anchorDate = values.renewalDate;
+      subscription.noticeDays = values.noticeDays === '' ? null : Number(values.noticeDays);
+      // subscription.review and subscription.id are left untouched.
+    }
+    saveSubscriptions(subscriptions);
+    endEdit();
+    render();
+    return;
+  }
+
   subscriptions.push({
     id: generateId(),
     name: values.name.trim(),
@@ -237,6 +288,9 @@ document.getElementById('empty-state-add-button').addEventListener('click', () =
 function deleteSubscription(id) {
   subscriptions = subscriptions.filter((subscription) => subscription.id !== id);
   saveSubscriptions(subscriptions);
+  if (editingId === id) {
+    endEdit();
+  }
   render();
 }
 
@@ -477,6 +531,13 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
   reviewContainer.className = 'review-container';
   renderReviewControl(reviewContainer, subscription);
   actions.appendChild(reviewContainer);
+
+  const editButton = document.createElement('button');
+  editButton.type = 'button';
+  editButton.className = 'edit-button';
+  editButton.textContent = 'Edit';
+  editButton.addEventListener('click', () => startEdit(subscription));
+  actions.appendChild(editButton);
 
   const deleteContainer = document.createElement('div');
   deleteContainer.className = 'delete-container';

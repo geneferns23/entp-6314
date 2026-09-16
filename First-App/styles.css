@@ -164,6 +164,20 @@ button {
   color: var(--color-blue-tint-text);
 }
 
+#cancel-edit-button {
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}
+
+#cancel-edit-button:hover {
+  color: var(--color-text);
+}
+
 #subscription-list {
   list-style: none;
   padding: 0;
@@ -333,6 +347,7 @@ button {
   color: var(--color-text-muted);
 }
 
+.edit-button,
 .delete-button,
 .confirm-delete-button,
 .cancel-delete-button {
@@ -344,10 +359,16 @@ button {
   text-decoration: underline;
 }
 
+.edit-button:hover,
 .delete-button:hover,
 .confirm-delete-button:hover,
 .cancel-delete-button:hover {
   color: var(--color-text);
+}
+
+.edit-button {
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 .confirm-prompt {
