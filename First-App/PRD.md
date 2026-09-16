@@ -146,6 +146,47 @@ All additions, deletions, and review submissions are saved to `localStorage` imm
 
 These exact cases are the acceptance test for the Phase 1 calculation logic.
 
+## Design
+
+A pastel palette, defined as CSS variables in `styles.css`.
+
+**Neutrals**
+- Page background `#FAF8F3`, card background `#FFFFFF`, borders `#E6E2D9`, text `#22252B`, muted text `#5F5E58`.
+
+**Blue — interactive only**
+- Primary buttons: `#2A3A5C` background, white text.
+- Links and focus outlines: `#2A3A5C`.
+- Blue tint `#DCE4F2` with `#243452` text, for selected or hover states only.
+
+**Blush — urgent**
+- "Renewing soon" badge: `#F7DAD5` background, `#8A2E27` text.
+- Urgent cards get a 3px `#C9665A` left border.
+- Cancel-by dates within 7 days or already passed: `#8A2E27` bold text; otherwise normal text.
+- Form errors: `#8A2E27`.
+
+**Butter — soon**
+- "Coming up" badge: `#F6EBC8` background, `#6B4E0F` text.
+
+**Later**
+- Plain muted text, no badge.
+
+**Sage — confirmation only**
+- "Subscription saved" confirmation: `#D8EBDD` background, `#2A5A40` text.
+
+**Review results**
+- Always neutral (muted text): "Reviewed [date]" plus the result message. Never colored.
+
+**Delete**
+- A muted gray text button.
+
+**Shapes**
+- Square card corners, 2px badge corners, no shadows, badge text at least 12px.
+
+**Focus**
+- 2px `#2A3A5C` outline, 2px offset.
+
+**Never use:** pastel colors for text or button backgrounds, gradients, emoji, or pill-shaped badges.
+
 ## Out of scope
 
 Editing an existing subscription, categories/tags, annualized cost display, seeded demo data, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage.

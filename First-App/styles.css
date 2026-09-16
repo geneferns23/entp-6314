@@ -1,10 +1,40 @@
+:root {
+  /* Neutrals */
+  --color-page-bg: #FAF8F3;
+  --color-card-bg: #FFFFFF;
+  --color-border: #E6E2D9;
+  --color-text: #22252B;
+  --color-text-muted: #5F5E58;
+
+  /* Blue - interactive only (buttons, links, focus, selected/hover) */
+  --color-blue: #2A3A5C;
+  --color-blue-tint-bg: #DCE4F2;
+  --color-blue-tint-text: #243452;
+
+  /* Blush - urgent (renewing soon, cancel-by urgency, form errors) */
+  --color-blush-badge-bg: #F7DAD5;
+  --color-blush-badge-text: #8A2E27;
+  --color-blush-border: #C9665A;
+  --color-blush-text: #8A2E27;
+
+  /* Butter - soon (coming up badge) */
+  --color-butter-badge-bg: #F6EBC8;
+  --color-butter-badge-text: #6B4E0F;
+
+  /* Sage - "Subscription saved" confirmation only */
+  --color-sage-bg: #D8EBDD;
+  --color-sage-text: #2A5A40;
+
+  --radius-badge: 2px;
+}
+
 body {
   font-family: system-ui, sans-serif;
   max-width: 640px;
   margin: 0 auto;
   padding: 1rem;
-  color: #1a1a1a;
-  background: #ffffff;
+  color: var(--color-text);
+  background: var(--color-page-bg);
 }
 
 header {
@@ -12,7 +42,7 @@ header {
 }
 
 .tagline {
-  color: #555;
+  color: var(--color-text-muted);
   margin-top: 0.25rem;
 }
 
@@ -20,8 +50,10 @@ header {
   font-weight: bold;
   padding: 0.75rem;
   margin-bottom: 1.5rem;
-  background: #eef4ff;
-  border-radius: 6px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  color: var(--color-text);
 }
 
 #summary:empty {
@@ -37,27 +69,51 @@ header {
 .field label {
   margin-bottom: 0.25rem;
   font-weight: bold;
+  color: var(--color-text);
 }
 
 .field input,
 .field select {
   padding: 0.4rem;
   font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-card-bg);
+  color: var(--color-text);
 }
 
 .error {
-  color: #b00020;
+  color: var(--color-blush-text);
   font-size: 0.875rem;
   min-height: 1.1em;
 }
 
 button {
   cursor: pointer;
+  font-family: inherit;
 }
 
-#subscription-form button[type="submit"] {
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+#subscription-form button[type="submit"],
+.review-form button[type="submit"],
+#empty-state-add-button {
   padding: 0.5rem 1rem;
   margin-top: 0.5rem;
+  background: var(--color-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0;
+}
+
+#subscription-form button[type="submit"]:hover,
+.review-form button[type="submit"]:hover,
+#empty-state-add-button:hover {
+  background: var(--color-blue-tint-bg);
+  color: var(--color-blue-tint-text);
 }
 
 #subscription-list {
@@ -66,10 +122,18 @@ button {
 }
 
 .subscription-card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
   padding: 0.75rem 1rem;
   margin-bottom: 0.75rem;
+  background: var(--color-card-bg);
+}
+
+/* Urgent = renewing soon, or the cancel-by deadline is close/passed.
+   :has() lets this key off elements already in the card, with no
+   further change to app.js. */
+.subscription-card:has(.status-soon, .cancel-by-urgent) {
+  border-left: 3px solid var(--color-blush-border);
 }
 
 .card-header {
@@ -82,37 +146,49 @@ button {
 
 .card-header .name {
   margin: 0;
+  color: var(--color-text);
 }
 
 .status {
-  font-size: 0.8rem;
+  font-size: 12px;
   font-weight: bold;
   padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid currentColor;
+  border-radius: var(--radius-badge);
   white-space: nowrap;
 }
 
 .status-soon {
-  color: #a30000;
+  background: var(--color-blush-badge-bg);
+  color: var(--color-blush-badge-text);
 }
 
 .status-coming-up {
-  color: #8a6100;
+  background: var(--color-butter-badge-bg);
+  color: var(--color-butter-badge-text);
 }
 
 .status-later {
-  color: #2a5d2a;
+  background: none;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-weight: normal;
 }
 
 .cost,
 .renewal-date,
-.relative,
-.cancel-by {
+.relative {
   margin: 0.25rem 0;
+  color: var(--color-text);
 }
 
 .cancel-by {
+  margin: 0.25rem 0;
+  color: var(--color-text);
+  font-weight: normal;
+}
+
+.cancel-by-urgent {
+  color: var(--color-blush-text);
   font-weight: bold;
 }
 
@@ -121,12 +197,21 @@ button {
 }
 
 .start-review-button {
-  padding: 0.3rem 0.6rem;
+  padding: 0.2rem 0;
+  background: none;
+  border: none;
+  color: var(--color-blue);
+  text-decoration: underline;
+}
+
+.start-review-button:hover {
+  background: var(--color-blue-tint-bg);
+  color: var(--color-blue-tint-text);
 }
 
 .review-form fieldset {
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
   margin-bottom: 0.5rem;
   padding: 0.5rem 0.75rem;
 }
@@ -134,11 +219,13 @@ button {
 .review-form legend {
   font-weight: bold;
   font-size: 0.9rem;
+  color: var(--color-text);
 }
 
 .review-form label {
   display: inline-block;
   margin-right: 1rem;
+  color: var(--color-text);
 }
 
 .review-form button {
@@ -146,19 +233,27 @@ button {
   margin-right: 0.5rem;
 }
 
+.review-form button[type="button"] {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+}
+
+/* Review results are always neutral, never colored. */
 .review-message {
-  font-weight: bold;
+  color: var(--color-text-muted);
+  font-weight: normal;
 }
 
 .review-disclaimer {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .review-date {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 .delete-container {
@@ -170,14 +265,18 @@ button {
 .cancel-delete-button {
   padding: 0.3rem 0.6rem;
   margin-right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
 }
 
 .confirm-prompt {
   margin-right: 0.5rem;
+  color: var(--color-text);
 }
 
 #empty-state {
   text-align: center;
   padding: 2rem 1rem;
-  color: #555;
+  color: var(--color-text-muted);
 }

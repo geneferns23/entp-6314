@@ -360,12 +360,19 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
     relativeText = `Renews in ${daysAway} days`;
   }
 
+  // Cancel-by text is urgent (styled in red) once its deadline has passed,
+  // or once it's 7 days away or closer -- otherwise it reads as normal text.
   let cancelByText = '';
+  let cancelByUrgent = false;
   if (subscription.noticeDays != null) {
     const cancelByInfo = getCancelByInfo(nextRenewal, subscription.noticeDays, today);
-    cancelByText = cancelByInfo.deadlinePassed
-      ? 'Cancellation deadline passed'
-      : `Cancel by ${formatDisplayDate(cancelByInfo.date)}`;
+    if (cancelByInfo.deadlinePassed) {
+      cancelByText = 'Cancellation deadline passed';
+      cancelByUrgent = true;
+    } else {
+      cancelByText = `Cancel by ${formatDisplayDate(cancelByInfo.date)}`;
+      cancelByUrgent = getDaysAway(cancelByInfo.date, today) <= 7;
+    }
   }
 
   li.innerHTML = `
@@ -376,7 +383,7 @@ function renderCard({ subscription, nextRenewal, daysAway }, today) {
     <p class="cost">$${subscription.cost.toFixed(2)} / ${subscription.frequency}</p>
     <p class="renewal-date">${formatDisplayDate(nextRenewal)}</p>
     <p class="relative">${relativeText}</p>
-    ${cancelByText ? `<p class="cancel-by">${cancelByText}</p>` : ''}
+    ${cancelByText ? `<p class="cancel-by${cancelByUrgent ? ' cancel-by-urgent' : ''}">${cancelByText}</p>` : ''}
   `;
   li.querySelector('.name').textContent = subscription.name;
 
