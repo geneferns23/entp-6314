@@ -1,0 +1,183 @@
+# Renewal Radar — Product Requirements Document
+
+**Course:** ENTP 6314 (Fall 2026), UT Dallas
+**Status:** Approved for build
+
+## Value proposition
+
+"See what's renewing before it charges you."
+
+## Target user
+
+People with several recurring subscriptions who don't want to connect a bank account to a finance app.
+
+## Problem / scope
+
+The app does one thing: show what is renewing soon, what it will cost, and when to cancel by. No accounts, no bank connections, no backend — everything lives in the user's browser.
+
+## Tech stack
+
+Plain HTML/CSS/JS. A single `index.html` (plus `style.css` and one or more `.js` files as needed), no build step, no npm dependencies. Matches the Session 2 exercises and keeps deployment simple.
+
+## Running locally
+
+Open `index.html` directly in a browser, or run `npx serve` from this folder for a local server.
+
+## Deployment
+
+Vercel, per the workflow documented in [CLAUDE.md](CLAUDE.md):
+
+```
+vercel link --yes --project first-app   # one time
+vercel                                   # preview deployment
+vercel --prod                            # promote to production
+```
+
+Since there's no build step, the Vercel "build" is just serving the static files as-is. The app stays in the `First-App` folder of the `entp-6314` repo; the Vercel project's Root Directory is set to `First-App` so it deploys correctly from that subfolder.
+
+## Data storage
+
+`localStorage`, under a single namespaced key (e.g. `renewal-radar-subscriptions`). The app stores each subscription's **entered fields only** — name, cost, frequency, anchor renewal date, notice days, and (if completed) the renewal review answers + date. Next renewal, days-away, status, and cancel-by are **never stored** — they are computed at render time from today's date and the stored anchor date, per the date rules below.
+
+## Data model (per subscription)
+
+| Field | Type | Rules |
+|---|---|---|
+| `id` | string | Generated (e.g. timestamp or random), not user-facing |
+| `name` | string | Required, max 60 characters |
+| `cost` | number | Required, > 0 |
+| `frequency` | enum | `monthly` \| `quarterly` \| `annual` |
+| `anchorDate` | date (ISO string) | Required; the renewal date the user entered. Past dates allowed. Never overwritten. |
+| `noticeDays` | integer \| null | Optional. Whole number, 1–365. Blank = null = no notice needed. |
+| `review` | object \| null | `{ usedRecently: 'yes'\|'no', wouldSignUpAgain: 'yes'\|'no'\|'unsure', hasSimilarAlternative: 'yes'\|'no'\|'unsure', answeredOn: date }`. Null until a review is submitted. |
+
+## Features
+
+### 1. Add a subscription
+
+A form with the fields above. Inline validation errors shown next to each invalid field, on submit (and ideally on blur):
+
+- Name: required; error if empty or over 60 characters.
+- Cost: required; error if not a number or not greater than 0.
+- Frequency: required; one of the three options (default unselected, or default to `monthly` — implementer's choice, but must be an explicit user choice or a sensible default the user can see and change).
+- Next renewal date: required; any date accepted, including past dates.
+- Cancellation notice: optional; if provided, must be a whole number between 1 and 365. Blank is valid and means "no notice needed."
+
+On valid submit, the subscription is added to the list and persisted to `localStorage` immediately.
+
+### 2. Subscription list
+
+- Sorted by nearest computed next renewal date (soonest first).
+- Each card shows:
+  - Name
+  - Cost + billing frequency (e.g. "$12.99 / monthly")
+  - Next renewal date (computed, see date rules)
+  - Relative renewal text: "Renews today", "Renews tomorrow", or "Renews in N days"
+  - Cancel-by date, only if notice days is set (see date rules for the "deadline passed" case)
+  - A status label as **visible text**, not color alone:
+    - **Renewing soon** — 0–7 days away
+    - **Coming up** — 8–30 days away
+    - **Later** — 31+ days away
+  - A "Start renewal review" button (see Feature 5) and, once a review exists, the review result message.
+  - A delete control (see Feature 4).
+
+### 3. Summary total
+
+Shown at the top of the page: the sum of actual per-cycle charges (not annualized) for every subscription whose **computed next renewal** falls within the next 0–30 days (inclusive), counting each subscription's next charge exactly once. Subscriptions renewing today count. Subscriptions renewing in 31+ days are excluded. Recomputed on every render — never stored.
+
+### 4. Delete a subscription
+
+A delete control on each card opens a confirmation (e.g. a confirm dialog or an inline "Are you sure?" state) before removing the subscription from the list and from `localStorage`.
+
+### 5. Renewal review
+
+Started from a button on each card. Presents exactly three required questions:
+
+1. "Have you used this recently?" — Yes / No
+2. "If deciding today, would you sign up again?" — Yes / No / Not sure
+3. "Do you have another service with a similar benefit?" — Yes / No / Not sure
+
+On submit, all three answers must be present. The answers and the submission date are saved onto the subscription (`review` field) and persisted. The card then displays the result message based on the answer combination:
+
+| Q1 | Q2 | Q3 | Message |
+|---|---|---|---|
+| Yes | Yes | No | "Your answers indicate that this subscription is currently providing value for you." |
+| No | No | Yes | "Your answers suggest this subscription may be worth reviewing before renewal." |
+| *(any other combination)* | | | "Your answers are mixed. Consider reviewing the cost, usage, and alternatives before renewal." |
+
+Always shown alongside the result, regardless of combination: **"This summary reflects your answers only. It isn't financial advice."**
+
+The app must never phrase a message as a recommendation about what to do with money (e.g. never "you should cancel this").
+
+A subscription can be re-reviewed; a new submission overwrites the previous `review` (answers + date).
+
+### 6. Empty state
+
+When there are zero subscriptions: show "No subscriptions yet" and a prompt/button to add the first one. No summary total or list rendered in this state.
+
+### 7. Persistence
+
+All additions, deletions, and review submissions are saved to `localStorage` immediately, so the data survives a page refresh. No expiration, sync, or export.
+
+## Date rules
+
+- The anchor date is exactly what the user entered when adding the subscription — never recalculated or overwritten.
+- Future renewals occur at anchor + (1, 3, or 12 months × k) for monthly/quarterly/annual respectively, where k = 0, 1, 2, ... — **always counted from the anchor**, never from the previous computed renewal.
+- If the resulting day doesn't exist in the target month, use that month's last day (e.g. Jan 31 + 1 month → Feb 28 or 29).
+- The **next renewal** is the first occurrence on or after today (today counts as 0 days away).
+- **Cancel-by date** = next renewal − notice days.
+  - If cancel-by is in the past but the renewal itself hasn't happened yet, show "Cancellation deadline passed" instead of a date.
+- Nothing calculated (next renewal, days-away, status, cancel-by) is ever stored — always computed at display time from `anchorDate` + today's date.
+
+### Test cases (today = 2026-09-15)
+
+| Frequency | Anchor | Next renewal | Days away |
+|---|---|---|---|
+| monthly | 2026-08-15 | 2026-09-15 | 0 |
+| monthly | 2026-08-14 | 2026-10-14 | 29 |
+| monthly | 2026-01-31 | 2026-09-30 | 15 |
+| quarterly | 2026-05-31 | 2026-11-30 | 76 |
+| annual | 2024-02-29 | 2027-02-28 | 166 |
+
+| Renewal | Notice | Cancel-by |
+|---|---|---|
+| 2026-09-29 | 7 days | 2026-09-22 |
+| 2026-09-20 | 10 days | "Cancellation deadline passed" |
+
+These exact cases are the acceptance test for the Phase 1 calculation logic.
+
+## Out of scope
+
+Editing an existing subscription, categories/tags, annualized cost display, seeded demo data, user accounts, notifications/reminders, bank or card connections, any backend or server-side storage.
+
+## Build phases
+
+### Phase 0 — Placeholder page deployed
+Deliverable: a static `index.html` with the app name and value proposition, deployed to production via Vercel.
+**Done when:** the production Vercel URL loads the placeholder page with no errors.
+
+### Phase 1 — Calculation logic with passing tests
+Deliverable: `calculations.js`, a pure JS module implementing the date rules (next renewal, days-away, status bucket, cancel-by) as functions that take `today` as a parameter, with no UI.
+**Done when:** `npm test` (running `tests/calculations.test.js` via Node's built-in `node:assert`) covers all cases from the "Test cases" table above and every one passes.
+
+### Phase 2 — Core app: form, list, total, delete, empty state, saving
+Deliverable: the add-subscription form with inline validation, the sorted list with status labels, the 0–30-day summary total, delete with confirmation, the empty state, and `localStorage` persistence.
+**Done when:** a user can add a subscription, refresh the page and still see it, see it correctly sorted and labeled among others, see the summary total update correctly, delete it with a confirmation step, and see the empty state when the list is cleared — all without a console error.
+
+### Phase 3 — Renewal review
+Deliverable: the three-question review flow, the four result messages, the fixed disclaimer, and persistence of review answers + date.
+**Done when:** submitting each of the three named answer combinations (Yes/Yes/No, No/No/Yes, and one other combination) shows the correct corresponding message plus the disclaimer, and the result persists across a refresh.
+
+### Phase 4 — Polish, mobile layout, accessibility, live-site testing
+Deliverable: responsive layout for mobile widths, keyboard navigability, status conveyed with text/icons (not color alone) verified visually, and a manual test pass on the deployed Vercel production URL covering every feature and all date-rule test cases.
+**Done when:** the production site is usable end-to-end on a phone-width viewport and with keyboard-only navigation, and every test case and feature above has been manually verified on the live URL.
+
+## Known limitations
+
+- Single-device only: data lives in one browser's `localStorage` and does not sync across devices or browsers.
+- No backup or export: clearing browser data or site storage permanently deletes all subscriptions.
+- No editing: fixing a typo or changing a date requires deleting and re-adding the subscription.
+- No reminders: the app must be opened to see what's renewing; it doesn't send notifications.
+- Manual entry only: no bank/email integration, so accuracy depends on the user keeping entries up to date.
+- Review guidance is generic and rule-based from three yes/no/unsure answers — it is not personalized financial advice and the app deliberately avoids telling users what to do.
+- Date math assumes the browser's local timezone/clock is correct; no timezone handling beyond what the browser provides.
