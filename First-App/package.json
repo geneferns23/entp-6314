@@ -1,0 +1,10 @@
+{
+  "name": "renewal-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Renewal Radar - see what's renewing before it charges you.",
+  "scripts": {
+    "test": "node tests/calculations.test.js"
+  }
+}
